@@ -32,6 +32,6 @@ mkdir -p ${TMP}/datasets/
 export DATASET_DIR=${TMP}/datasets/
 # Activate the relevant virtual environment:
 
-source /home/${STUDENT_ID}/miniconda3/bin/activate new_jiant
+source /home/${STUDENT_ID}/miniconda3/bin/activate sinr_icml
 #cd ..
-python job.py
+python evaluate_baseline.py
