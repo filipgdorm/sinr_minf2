@@ -135,7 +135,10 @@ class EvaluatorIUCN:
     def run_evaluation(self, model, enc):
         results = {}
 
+        thresh = 0.1
+
         results['per_species_average_precision_all'] = np.zeros(len(self.taxa), dtype=np.float32)
+        results[f'per_species_f1_all_{thresh}'] = np.zeros(len(self.taxa), dtype=np.float32)
         # get eval locations and apply input encoding
         obs_locs = torch.from_numpy(self.obs_locs).to(self.eval_params['device'])
         loc_feat = enc.encode(obs_locs)
@@ -155,10 +158,11 @@ class EvaluatorIUCN:
 
         for tt_id, tt in enumerate(self.taxa):
             class_of_interest = np.where(np.array(self.train_params['class_to_taxa']) == tt)[0]
-
+            
             if len(class_of_interest) == 0:
                 # taxa of interest is not in the model
                 results['per_species_average_precision_all'][tt_id] = np.nan
+                results[f'per_species_f1_all_{thresh}'][tt_id] = np.nan
             else:
                 # extract model predictions for current taxa from prediction matrix
                 pred = pred_mtx[:, tt_id]
@@ -166,18 +170,29 @@ class EvaluatorIUCN:
                 gt[self.data['taxa_presence'][str(tt)]] = 1.0
                 # average precision score:
                 results['per_species_average_precision_all'][tt_id] = utils.average_precision_score_faster(gt, pred)
+                # f1 score at threshold
+                results[f'per_species_f1_all_{thresh}'][tt_id] = utils.f1_at_thresh(gt,pred,thresh,'macro')
+            #break
 
-        valid_taxa = ~np.isnan(results['per_species_average_precision_all'])
+        valid_taxa_ap = ~np.isnan(results['per_species_average_precision_all'])
+        valid_taxa_f1 = ~np.isnan(results[f'per_species_f1_all_{thresh}'])
 
-        # store results
-        per_species_average_precision_valid = results['per_species_average_precision_all'][valid_taxa]
+        # store ap results
+        per_species_average_precision_valid = results['per_species_average_precision_all'][valid_taxa_ap]
         results['mean_average_precision'] = per_species_average_precision_valid.mean()
-        results['num_eval_species_w_valid_ap'] = valid_taxa.sum()
+        results['num_eval_species_w_valid_ap'] = valid_taxa_ap.sum()
+
+        #store f1 results
+        per_species_f1_valid = results[f'per_species_f1_all_{thresh}'][valid_taxa_f1]
+        results[f'mean_f1_{thresh}'] = per_species_f1_valid.mean()
+        results['num_eval_species_w_valid_f1'] = valid_taxa_f1.sum()
+
         results['num_eval_species_total'] = len(self.taxa)
         return results
 
     def report(self, results):
-        for field in ['mean_average_precision', 'num_eval_species_w_valid_ap', 'num_eval_species_total']:
+        thresh = 0.1
+        for field in ['mean_average_precision', 'num_eval_species_w_valid_ap', f'mean_f1_{thresh}', 'num_eval_species_w_valid_f1', 'num_eval_species_total']:
             print(f'{field}: {results[field]}')
 
 class EvaluatorGeoPrior:
@@ -328,7 +343,7 @@ def launch_eval_run(overrides):
     eval_params = setup.get_default_params_eval(overrides)
 
     # set up model:
-    eval_params['model_path'] = os.path.join(eval_params['exp_base'], eval_params['experiment_name'], eval_params['ckp_name'])
+    eval_params['model_path'] = os.path.join(eval_params['exp_base'], eval_params['experiment_name'])#, eval_params['ckp_name'])
     train_params = torch.load(eval_params['model_path'], map_location='cpu')
     model = models.get_model(train_params['params'])
     model.load_state_dict(train_params['state_dict'], strict=True)

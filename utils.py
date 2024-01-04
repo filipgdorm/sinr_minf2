@@ -159,3 +159,8 @@ def average_precision_score_faster(y_true, y_scores):
     recall_e = (recall_e[1:] - recall_e[:-1])[:-1]
     map_score = (recall_e*precision).sum()
     return map_score
+
+from sklearn.metrics import f1_score
+def f1_at_thresh(y_true, y_pred, thresh, type = 'binary'):
+    y_thresh = y_pred > thresh
+    return f1_score(y_true, y_thresh, average=type)
