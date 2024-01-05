@@ -33,5 +33,5 @@ export DATASET_DIR=${TMP}/datasets/
 # Activate the relevant virtual environment:
 
 source /home/${STUDENT_ID}/miniconda3/bin/activate sinr_icml
-#cd ..
+cd ..
 python evaluate_baseline.py
