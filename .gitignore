@@ -4,3 +4,6 @@ other_data/
 pretrained_models/
 __pycache__
 results/
+*npy
+*csv
+*pdf
