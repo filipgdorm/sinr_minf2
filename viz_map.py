@@ -64,6 +64,11 @@ def main(eval_params):
     with torch.no_grad():
         preds = model(locs_enc, return_feats=False, class_of_interest=class_of_interest).cpu().numpy()
 
+    #filip added to save preds
+    save_loc = os.path.join('./filip/range_predictions/', str(eval_params['taxa_id']) + '_pred.npy')
+    np.save(save_loc, preds)
+
+
     # threshold predictions
     if eval_params['threshold'] > 0:
         print(f'Applying threshold of {eval_params["threshold"]} to the predictions.')

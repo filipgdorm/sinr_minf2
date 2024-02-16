@@ -45,7 +45,7 @@ loss
 train_params['loss'] = 'an_full'
 
 # train:
-train.launch_training_run(train_params)
+train.launch_training_run(train_params) 
 
 # evaluate:
 for eval_type in ['snt', 'iucn', 'geo_prior', 'geo_feature']:
