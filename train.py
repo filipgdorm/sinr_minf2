@@ -80,6 +80,7 @@ def launch_training_run(ovr):
     # model:
     model = models.get_model(params)
     model = model.to(params['device'])
+    print("Device :", params['device'])
 
     # train:
     trainer = Trainer(model, train_loader, params)

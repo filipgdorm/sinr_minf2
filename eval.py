@@ -343,7 +343,7 @@ def launch_eval_run(overrides):
     eval_params = setup.get_default_params_eval(overrides)
 
     # set up model:
-    eval_params['model_path'] = os.path.join(eval_params['exp_base'], eval_params['experiment_name'])#, eval_params['ckp_name'])
+    eval_params['model_path'] = os.path.join(eval_params['exp_base'], eval_params['experiment_name'], eval_params['ckp_name'])
     train_params = torch.load(eval_params['model_path'], map_location='cpu')
     model = models.get_model(train_params['params'])
     model.load_state_dict(train_params['state_dict'], strict=True)

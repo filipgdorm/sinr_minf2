@@ -34,4 +34,4 @@ export DATASET_DIR=${TMP}/datasets/
 
 source /home/${STUDENT_ID}/miniconda3/bin/activate sinr_icml
 cd ..
-python evaluate_baseline.py
+python python train_and_evaluate_models.py
