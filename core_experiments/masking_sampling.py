@@ -10,6 +10,7 @@ import h3
 from sklearn.metrics import precision_recall_curve
 import argparse
 from tqdm import tqdm
+import math
 
 sys.path.append('../')
 import datasets
@@ -24,7 +25,7 @@ parser.add_argument("--exp_name", type=str, default='test', help="Experiment nam
 args = parser.parse_args()
 
 MODEL_PATH = '../pretrained_models/' + args.model_path
-RESULT_DIR = './tgt_background_results/'
+RESULT_DIR = './masking_sampling_results/'
 
 if not os.path.exists(RESULT_DIR+args.exp_name):
         os.mkdir(RESULT_DIR+args.exp_name)
@@ -95,6 +96,7 @@ obs_locs = torch.from_numpy(obs_locs).to('cpu')
 loc_feat = enc.encode(obs_locs)
 
 classes_of_interest = torch.zeros(len(species_ids), dtype=torch.int64)
+taxa_ids = torch.zeros(len(species_ids), dtype=torch.int64)
 for tt_id, tt in enumerate(species_ids):
     class_of_interest = np.array([train_params['params']['class_to_taxa'].index(int(tt))])
     classes_of_interest[tt_id] = torch.from_numpy(class_of_interest)
@@ -103,6 +105,23 @@ with torch.no_grad():
     loc_emb = model(loc_feat, return_feats=True)
     wt = model.class_emb.weight[classes_of_interest, :]
 
+def subsample_thresh(presences, sample_size, n_times):
+    thresholds = []
+    for n in range(n_times):
+        thresholds.append(np.random.choice(presences.values, size=math.ceil(sample_size*len(presences)), replace=False).min())
+    return np.mean(thresholds)
+
+def f1_at_thresh(y_true, y_pred, thresh, type = 'binary'):
+        y_thresh = y_pred > thresh
+        return f1_score(y_true, y_thresh, average=type)
+
+obs_locs_iucn = np.array(data['locs'], dtype=np.float32)
+obs_locs_iucn = torch.from_numpy(obs_locs_iucn).to('cpu')
+loc_feat_iucn = enc.encode(obs_locs_iucn)
+
+with torch.no_grad():
+        loc_emb_iucn = model(loc_feat_iucn, return_feats=True)
+        wt_iucn = model.class_emb.weight[classes_of_interest, :]
 
 output = []
 for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(classes_of_interest)):
@@ -111,39 +130,38 @@ for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(clas
     gdfk["pred"] = preds
 
     target_spatial_grid_counts = train_df_h3[train_df_h3.label==class_id.item()].index.value_counts()
-
+         
     presence_absence["forground"] = target_spatial_grid_counts
     presence_absence["predictions"] = gdfk["pred"]
     presence_absence.forground = presence_absence.forground.fillna(0)
-    yield_cutoff = np.percentile((presence_absence["background"]/presence_absence["forground"])[presence_absence["forground"]>0], 95)
-    absences = presence_absence[(presence_absence["forground"]==0) & (presence_absence["background"] > yield_cutoff)]["predictions"]
-    presences = presence_absence[(presence_absence["forground"]>0)]["predictions"]
-    df_x = pd.DataFrame({'predictions': presences, 'test': 1})
-    df_y = pd.DataFrame({'predictions': absences, 'test': 0})
-    for_thres = pd.concat([df_x, df_y], ignore_index=False)
-    precision, recall, thresholds = precision_recall_curve(for_thres.test, for_thres.predictions)
-    p1 = (2 * precision * recall)
-    p2 = (precision + recall)
-    out = np.zeros( (len(p1)) )
-    fscore = np.divide(p1,p2, out=out, where=p2!=0)
-    index = np.argmax(fscore)
-    thres = thresholds[index]
-    max_fscore = fscore[index]
-    
-    row = {
-        "taxon_id": train_dataset.class_to_taxa[class_id.item()],
-        "thres": thres,
-        "area": len(gdfk[gdfk.pred >= thres])*area,
-        "pseudo_fscore": max_fscore
-    }
-    row_dict = dict(row)
-    output.append(row_dict)
 
+    presences = presence_absence[(presence_absence["forground"]>0)]["predictions"]
+
+    # Applying subsample_thresh function
+    sample_sizes = np.arange(0.1, 1, 0.1)
+    n_times_values = [1, 5, 10]
+
+    ###load iucn data
+    taxa = train_dataset.class_to_taxa[class_id.item()]
+    species_locs = data['taxa_presence'].get(str(taxa))
+    wt_1_iucn = wt_iucn[class_index,:]
+    preds_iucn = torch.sigmoid(torch.matmul(loc_emb_iucn, wt_1_iucn)).cpu().numpy()
+
+    for sample_size in sample_sizes:
+        for n_times in n_times_values:
+
+            thres = subsample_thresh(presences, sample_size, n_times)
+            y_test = np.zeros(preds_iucn.shape, int)
+            y_test[species_locs] = 1
+
+            f1 = f1_at_thresh(y_test, preds_iucn, thres, type='binary')
+
+            output.append({"taxon_id": taxa,
+                           'sample_size': sample_size,
+                           'n_times': n_times,
+                           'thres': thres,
+                           "iucn_f1": f1})
+    
 output_pd = pd.DataFrame(output)
     
-output_pd.to_csv(RESULT_DIR+args.exp_name+f"/thresholds.csv")
-
-
-
-
-
+output_pd.to_csv(RESULT_DIR+args.exp_name+f"/thresholds_w_fscore.csv")

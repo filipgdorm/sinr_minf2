@@ -21,10 +21,9 @@ def check_containment(list1, list2):
     else:
         not_contained = set(list1) - set(list2)
         raise ValueError(f"Error: Taxa {not_contained} in thresholds have expert range maps.")
-    
-RESULT_DIR = './tgt_background_results/'
 
 def main(args):
+    RESULT_DIR = f'./{args.result_dir}/'
 
     threshs = pd.read_csv(RESULT_DIR+args.exp_name+f"/thresholds.csv")
 
@@ -88,10 +87,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script to process thresholds and perform an experiment.")
     parser.add_argument("--model_path", type=str, default='model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt', help="Model path.")
     parser.add_argument("--exp_name", type=str, default='test', help="Experiment name")
+    parser.add_argument("--result_dir", type=str, help="Path to result dir.")
+
     args = parser.parse_args()
 
     # Set up logging to file
-    log_file_path = RESULT_DIR+args.exp_name+"/log.out"
+    log_file_path = f'./{args.result_dir}/'+args.exp_name+"/log.out"
     logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
                         format='%(levelname)s: %(message)s')
     console = logging.StreamHandler()

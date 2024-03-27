@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 import json
@@ -24,7 +25,7 @@ parser.add_argument("--exp_name", type=str, default='test', help="Experiment nam
 args = parser.parse_args()
 
 MODEL_PATH = '../pretrained_models/' + args.model_path
-RESULT_DIR = './tgt_background_results/'
+RESULT_DIR = './masking_results/'
 
 if not os.path.exists(RESULT_DIR+args.exp_name):
         os.mkdir(RESULT_DIR+args.exp_name)
@@ -111,30 +112,18 @@ for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(clas
     gdfk["pred"] = preds
 
     target_spatial_grid_counts = train_df_h3[train_df_h3.label==class_id.item()].index.value_counts()
-
+         
     presence_absence["forground"] = target_spatial_grid_counts
     presence_absence["predictions"] = gdfk["pred"]
     presence_absence.forground = presence_absence.forground.fillna(0)
-    yield_cutoff = np.percentile((presence_absence["background"]/presence_absence["forground"])[presence_absence["forground"]>0], 95)
-    absences = presence_absence[(presence_absence["forground"]==0) & (presence_absence["background"] > yield_cutoff)]["predictions"]
+
     presences = presence_absence[(presence_absence["forground"]>0)]["predictions"]
-    df_x = pd.DataFrame({'predictions': presences, 'test': 1})
-    df_y = pd.DataFrame({'predictions': absences, 'test': 0})
-    for_thres = pd.concat([df_x, df_y], ignore_index=False)
-    precision, recall, thresholds = precision_recall_curve(for_thres.test, for_thres.predictions)
-    p1 = (2 * precision * recall)
-    p2 = (precision + recall)
-    out = np.zeros( (len(p1)) )
-    fscore = np.divide(p1,p2, out=out, where=p2!=0)
-    index = np.argmax(fscore)
-    thres = thresholds[index]
-    max_fscore = fscore[index]
+
+    thres = np.percentile(presences, 5)
     
     row = {
         "taxon_id": train_dataset.class_to_taxa[class_id.item()],
         "thres": thres,
-        "area": len(gdfk[gdfk.pred >= thres])*area,
-        "pseudo_fscore": max_fscore
     }
     row_dict = dict(row)
     output.append(row_dict)
