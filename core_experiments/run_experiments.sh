@@ -3,7 +3,7 @@
 # Activate Conda Environment [assuming your Miniconda installation is in your root directory]
 source ~/opt/anaconda3/bin/activate sinr_icml_og
 
-RESULT_DIR="expert_subsample_results"
+RESULT_DIR="upper_b_1_thres_results"
 
 # Define arrays for experiment names and model paths
 experiment_names=("an_full_1000" "an_slds_1000" "an_ssdl_1000")
@@ -16,7 +16,7 @@ for ((i=0; i<${#experiment_names[@]}; i++)); do
     EXP_NAME="${experiment_names[i]}"
     MODEL_PATH="${model_paths[i]}"
 
-    python expert_subsample.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}"
+    python upper_b_1_thres.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}"
 
     #python eval_f1.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}" --result_dir "${RESULT_DIR}"
 done
