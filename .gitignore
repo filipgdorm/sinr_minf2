@@ -7,3 +7,8 @@ results/
 *npy
 *csv
 *pdf
+*png
+new_results/*
+*.out
+*json
+core_experiments/masking_sampling_results/subsample_thresholding_results.ipynb
