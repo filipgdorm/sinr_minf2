@@ -16,7 +16,8 @@ for ((i=0; i<${#experiment_names[@]}; i++)); do
     EXP_NAME="${experiment_names[i]}"
     MODEL_PATH="${model_paths[i]}"
 
-    python upper_b_1_thres.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}"
+    python threshold_classifier.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}" --thres_model mlp
+    python threshold_classifier.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}" --thres_model rf
 
     #python eval_f1.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}" --result_dir "${RESULT_DIR}"
 done

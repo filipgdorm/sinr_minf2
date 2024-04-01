@@ -107,7 +107,7 @@ mask[random_indices] = True
 X_train_thres, X_test_thres = X[mask], X[~mask]
 y_train_thres, y_test_thres = y[mask], y[~mask]
 
-logging.log(f"Threshold classifier model used {args.thres_model}")
+logging.info(f"Threshold classifier model used {args.thres_model}")
 if args.thres_model=="rf":
     # Create a Random Forest Classifier object
     rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
