@@ -133,9 +133,12 @@ def report(results):
         print('Overall accuracy vision only model', round(results['vision_only_top_1'], 3))
         print('Overall accuracy of geo model     ', round(results['vision_geo_top_1'], 3))
         print('Gain                              ', round(results['vision_geo_top_1'] - results['vision_only_top_1'], 3))
-        logging.info('Overall accuracy vision only model', round(results['vision_only_top_1'], 3))
-        logging.info('Overall accuracy of geo model     ', round(results['vision_geo_top_1'], 3))
-        logging.info('Gain                              ', round(results['vision_geo_top_1'] - results['vision_only_top_1'], 3))
+        res1 = round(results['vision_only_top_1'], 3)
+        res2 = round(results['vision_geo_top_1'], 3)
+        res3 = round(results['vision_geo_top_1'] - results['vision_only_top_1'], 3)
+        logging.info(f'Overall accuracy vision only model {res1}')
+        logging.info(f'Overall accuracy of geo model      {res2}')
+        logging.info(f'Gain                               {res3}')
 
 report(results)
 
