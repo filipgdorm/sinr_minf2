@@ -134,7 +134,7 @@ for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(clas
     y_true = truth_array
     y_prob = preds
    
-    ece = um.ace(y_true,y_prob,num_bins=20)
+    ece = um.ece(y_true,y_prob,num_bins=20)
 
     # Compute Brier score
     brier_score = brier_score_loss(y_true, y_prob)
