@@ -7,9 +7,9 @@ MODEL_PATH="1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_pe
 EXP_NAME="an_full_-1"
 
 # Define the gammas you want to iterate over
-gammas=(0.01 0.1 0.25 0.5 1 5)
+gammas=(-0.1 -0.01 0.01 0.1 0.25)
 
 for gamma in "${gammas[@]}"; do
     # Convert gamma to a string for constructing file paths
-    python norm_calibration.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}" --gamma "$gamma"
+    python norm_calibration_v2.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}" --gamma "$gamma"
 done

@@ -21,27 +21,26 @@ import models
 import utils
 import setup
 
-# RESULT_DIR = './calibration_metrics_results/ensemble/an_full/'
-# MODEL_1_PATH = '../pretrained_models/model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt'
-# MODEL_2_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
-# MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_-1/model.pt'
+RESULT_DIR = './calibration_metrics_results/ensemble/an_full/'
+MODEL_1_PATH = '../pretrained_models/model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt'
+MODEL_2_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
+MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_-1/model.pt'
 
-RESULT_DIR = './calibration_metrics_results/ensemble/loss_ensemble_full_slds/'
-MODEL_1_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
-MODEL_2_PATH = '../pretrained_models/1000_cap_models/final_loss_an_slds_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
-#MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_ssdl_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
+# RESULT_DIR = './calibration_metrics_results/ensemble/loss/'
+# MODEL_1_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
+# MODEL_2_PATH = '../pretrained_models/1000_cap_models/final_loss_an_slds_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
+# MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_ssdl_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
 
 if not os.path.exists(RESULT_DIR):
         os.mkdir(RESULT_DIR)
 
 # Set up logging to file
-log_file_path = RESULT_DIR+"/log.out"
+log_file_path = RESULT_DIR+"/log_v2.out"
 logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
                 format='%(levelname)s: %(message)s')
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 logging.getLogger('').addHandler(console)
-logging.info(f"ensemble of {MODEL_1_PATH} and {MODEL_2_PATH}")
 
 ### MODEL 1
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -58,12 +57,12 @@ model2.load_state_dict(train_params['state_dict'], strict=True)
 model2 = model2.to(DEVICE)
 model2.eval()
 
-# ### MODEL 3 uncapped version
-# train_params = torch.load(MODEL_3_PATH, map_location='cpu')
-# model3 = models.get_model(train_params['params'])
-# model3.load_state_dict(train_params['state_dict'], strict=True)
-# model3 = model3.to(DEVICE)
-# model3.eval()
+### MODEL 3 uncapped version
+train_params = torch.load(MODEL_3_PATH, map_location='cpu')
+model3 = models.get_model(train_params['params'])
+model3.load_state_dict(train_params['state_dict'], strict=True)
+model3 = model3.to(DEVICE)
+model3.eval()
 
 if train_params['params']['input_enc'] in ['env', 'sin_cos_env']:
     raster = datasets.load_env()
@@ -102,10 +101,10 @@ with torch.no_grad():
     loc_emb_2 = model2(loc_feat, return_feats=True)
     wt_2 = model2.class_emb.weight[classes_of_interest, :]
 
-# ###Model 3
-# with torch.no_grad():
-#     loc_emb_3 = model3(loc_feat, return_feats=True)
-#     wt_3 = model3.class_emb.weight[classes_of_interest, :]
+###Model 3
+with torch.no_grad():
+    loc_emb_3 = model3(loc_feat, return_feats=True)
+    wt_3 = model3.class_emb.weight[classes_of_interest, :]
 
 def fscore_and_thres(y_test, preds):
     precision, recall, thresholds = precision_recall_curve(y_test, preds)
@@ -130,13 +129,11 @@ for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(clas
     wt_column_2 = wt_2[class_index,:]
     preds2 = torch.sigmoid(torch.matmul(loc_emb_2, wt_column_2)).cpu().numpy()
 
-    # wt_column_3 = wt_3[class_index,:]
-    # preds3 = torch.sigmoid(torch.matmul(loc_emb_3, wt_column_3)).cpu().numpy()
+    wt_column_3 = wt_3[class_index,:]
+    preds3 = torch.sigmoid(torch.matmul(loc_emb_3, wt_column_3)).cpu().numpy()
     
     # Stack the tensors along a new axis
-    #stacked_tensors = np.stack([preds1, preds2, preds3])
-    stacked_tensors = np.stack([preds1, preds2])
-
+    stacked_tensors = np.stack([preds1, preds2, preds3])
 
     # Take the mean across the new axis
     preds = np.mean(stacked_tensors, axis=0)
@@ -147,34 +144,23 @@ for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(clas
     y_test = np.zeros(preds.shape, int)
     y_test[species_locs] = 1
 
-    #generate calibration curve data for clustering
-    y_true = y_test
-    y_prob = preds
-   
-    ece = um.ece(y_true,y_prob,num_bins=20)
-
-    tace = um.tace(y_true,y_prob,num_bins=20)
-
     _, optimal_thres = fscore_and_thres(y_test, preds)
     fscore50 = f1_at_thresh(y_test,preds,0.5)
 
     row = {
         "taxon_id": taxa,
-        "ece": ece,
-        "tace": tace,
         "optimal_thres": optimal_thres,
         "fscore50": fscore50
     }
     row_dict = dict(row)
+ 
     output.append(row_dict)
 
 output_pd = pd.DataFrame(output)
-logging.info(f"Mean ECE: {output_pd.ece.mean()}")
-logging.info(f"Mean TACE: {output_pd.tace.mean()}")
+    
+output_pd.to_csv(RESULT_DIR+"/scores_v2.csv")
 logging.info(f"Mean fscore50: {output_pd.fscore50.mean()}")
 logging.info(f"Std optimal_thres: {output_pd.optimal_thres.std()}")
-
-output_pd.to_csv(RESULT_DIR+f"/scores.csv")
 
 
 
