@@ -81,7 +81,6 @@ num_points = args.num_points
 geomspace_values = np.geomspace(0.01, 1, num=num_points, endpoint=False)
 
 linspace_values = np.linspace(0.05, 1, num=num_points, endpoint=False)
-linspace_values
 
 if (args.log):
     threshs = geomspace_values

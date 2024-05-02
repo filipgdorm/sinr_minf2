@@ -29,7 +29,7 @@ parser.add_argument("--exp_name", type=str, default='test', help="Experiment nam
 args = parser.parse_args()
 
 MODEL_PATH = '../pretrained_models/' + args.model_path
-RESULT_DIR = './IIF_results/'
+RESULT_DIR = './IIF_results/v3-'
 
 if not os.path.exists(RESULT_DIR+args.exp_name):
         os.mkdir(RESULT_DIR+args.exp_name)
@@ -130,6 +130,7 @@ def norm_cal_activation(preds,N,gamma):
     return (np.exp(preds)/ ac) / ((np.exp(preds) / ac) + 1)
 
 K = len(presence_absence)
+IF_vals = train_df_h3.reset_index().groupby("label").h3_05.nunique()
 def calibrate_predictions(raw_preds):
     calibrated_preds = raw_preds.detach().clone()
 
@@ -137,7 +138,7 @@ def calibrate_predictions(raw_preds):
     for col_idx in range(raw_preds.shape[1]):
         col_value = raw_preds[:, col_idx]
 
-        IF = len(train_df_h3[train_df_h3.label==col_idx].index.value_counts())
+        IF = IF_vals[col_idx]
         IIF = np.log(K/IF)
 
         scaled_raw_preds = col_value*IIF

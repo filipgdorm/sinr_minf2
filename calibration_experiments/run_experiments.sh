@@ -14,6 +14,6 @@ for ((i=0; i<${#experiment_names[@]}; i++)); do
     EXP_NAME="${experiment_names[i]}"
     MODEL_PATH="${model_paths[i]}"
 
-    python calibration_metrics_v2.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}"
+    python calibration_metrics.py --exp_name "${EXP_NAME}" --model_path "${MODEL_PATH}"
 
 done

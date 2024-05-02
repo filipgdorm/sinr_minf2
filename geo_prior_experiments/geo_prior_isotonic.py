@@ -97,7 +97,7 @@ else:
 enc = utils.CoordEncoder(train_params['params']['input_enc'], raster=raster)
 
 def calibrate_predictions(preds):
-    regressors_dir = "./calibrators/isotonic/"
+    regressors_dir = "./calibrators2/isotonic/"
     calibrated_preds = preds.detach().clone()
     # Iterate over each column of raw_preds
     for col_idx in range(preds.shape[1]):

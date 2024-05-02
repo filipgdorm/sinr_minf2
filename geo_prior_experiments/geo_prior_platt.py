@@ -97,7 +97,7 @@ else:
 enc = utils.CoordEncoder(train_params['params']['input_enc'], raster=raster)
 
 def calibrate_predictions(raw_preds):
-    regressors_dir = "./calibrators/platt/"
+    regressors_dir = "./calibrators2/platt/"
     calibrated_preds = raw_preds.detach().clone()
     # Iterate over each column of raw_preds
     for col_idx in range(raw_preds.shape[1]):
@@ -149,6 +149,11 @@ def run_evaluation(model, enc):
 
         results['vision_only_top_1'] = float((data['inds'][:, -1] == data['labels']).mean())
         results['vision_geo_top_1'] = float(correct_pred.mean())
+
+        lala = {'labels': data['labels'], 'correct_pred': (data['inds'][:, -1] == data['labels']), "correct_geo_pred": correct_pred}
+        df = pd.DataFrame(lala)
+        df.to_csv("../report_plotting/geo_prior_plot_platt.csv")
+
         return results
 
 results = run_evaluation(model, enc)

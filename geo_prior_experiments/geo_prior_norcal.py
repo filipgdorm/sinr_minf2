@@ -113,7 +113,7 @@ def calibrate_predictions(raw_preds):
         taxon_id = train_params['params']['class_to_taxa'][col_idx]
 
         N = counts[taxon_id]
-        col_preds = norm_cal_activation(col_value.numpy(), N, gamma=0.1)
+        col_preds = norm_cal_activation(col_value.numpy(), N, gamma=args.gamma)
 
         calibrated_preds[:, col_idx] = torch.tensor(col_preds)
     return calibrated_preds
@@ -140,8 +140,7 @@ def run_evaluation(model, enc):
                 wt = model.class_emb.weight.detach().clone()
                 wt.requires_grad = False
             raw_preds = torch.matmul(loc_emb, wt.T)
-            preds = torch.sigmoid(raw_preds)    #norcal calibrates sigmoided predictions
-            geo_pred = calibrate_predictions(preds)
+            geo_pred = calibrate_predictions(raw_preds)
 
             geo_pred, vision_pred = convert_to_inat_vision_order(geo_pred, vision_probs, vision_inds,
                                                                  data['model_to_taxa'], taxon_map)

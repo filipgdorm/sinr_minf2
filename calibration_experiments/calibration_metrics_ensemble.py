@@ -26,10 +26,10 @@ import setup
 # MODEL_2_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
 # MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_-1/model.pt'
 
-RESULT_DIR = './calibration_metrics_results/ensemble/loss_ensemble_full_slds/'
+RESULT_DIR = './calibration_metrics_results/ensemble/loss/'
 MODEL_1_PATH = '../pretrained_models/1000_cap_models/final_loss_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
 MODEL_2_PATH = '../pretrained_models/1000_cap_models/final_loss_an_slds_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
-#MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_ssdl_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
+MODEL_3_PATH = '../pretrained_models/1000_cap_models/final_loss_an_ssdl_input_enc_sin_cos_hard_cap_num_per_class_1000/model.pt'
 
 if not os.path.exists(RESULT_DIR):
         os.mkdir(RESULT_DIR)
@@ -59,11 +59,11 @@ model2 = model2.to(DEVICE)
 model2.eval()
 
 # ### MODEL 3 uncapped version
-# train_params = torch.load(MODEL_3_PATH, map_location='cpu')
-# model3 = models.get_model(train_params['params'])
-# model3.load_state_dict(train_params['state_dict'], strict=True)
-# model3 = model3.to(DEVICE)
-# model3.eval()
+train_params = torch.load(MODEL_3_PATH, map_location='cpu')
+model3 = models.get_model(train_params['params'])
+model3.load_state_dict(train_params['state_dict'], strict=True)
+model3 = model3.to(DEVICE)
+model3.eval()
 
 if train_params['params']['input_enc'] in ['env', 'sin_cos_env']:
     raster = datasets.load_env()
@@ -103,9 +103,9 @@ with torch.no_grad():
     wt_2 = model2.class_emb.weight[classes_of_interest, :]
 
 # ###Model 3
-# with torch.no_grad():
-#     loc_emb_3 = model3(loc_feat, return_feats=True)
-#     wt_3 = model3.class_emb.weight[classes_of_interest, :]
+with torch.no_grad():
+    loc_emb_3 = model3(loc_feat, return_feats=True)
+    wt_3 = model3.class_emb.weight[classes_of_interest, :]
 
 def fscore_and_thres(y_test, preds):
     precision, recall, thresholds = precision_recall_curve(y_test, preds)
@@ -130,12 +130,12 @@ for class_index, class_id in tqdm(enumerate(classes_of_interest), total=len(clas
     wt_column_2 = wt_2[class_index,:]
     preds2 = torch.sigmoid(torch.matmul(loc_emb_2, wt_column_2)).cpu().numpy()
 
-    # wt_column_3 = wt_3[class_index,:]
-    # preds3 = torch.sigmoid(torch.matmul(loc_emb_3, wt_column_3)).cpu().numpy()
+    wt_column_3 = wt_3[class_index,:]
+    preds3 = torch.sigmoid(torch.matmul(loc_emb_3, wt_column_3)).cpu().numpy()
     
     # Stack the tensors along a new axis
-    #stacked_tensors = np.stack([preds1, preds2, preds3])
-    stacked_tensors = np.stack([preds1, preds2])
+    stacked_tensors = np.stack([preds1, preds2, preds3])
+    #stacked_tensors = np.stack([preds1, preds2])
 
 
     # Take the mean across the new axis

@@ -12,3 +12,6 @@ new_results/*
 *.out
 *json
 core_experiments/masking_sampling_results/subsample_thresholding_results.ipynb
+continent-poly
+*.pkl
+report_plotting
