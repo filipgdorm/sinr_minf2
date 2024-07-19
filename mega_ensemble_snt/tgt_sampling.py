@@ -44,7 +44,7 @@ def collect_model_paths(model_dir):
 
 MODEL_PATHS = collect_model_paths(MODEL_DIR)
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cpu')
 models_list = []
 for model_path in MODEL_PATHS:
     train_params = torch.load(model_path, map_location='cpu')

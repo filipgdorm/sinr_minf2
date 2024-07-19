@@ -20,7 +20,6 @@ RESULT_DIR = "rdm_sampling_snt"
 
 threshs = pd.read_csv(RESULT_DIR + f"/thresholds.csv")
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Set up logging to file
 log_file_path = RESULT_DIR + f"/log.out"
@@ -45,7 +44,7 @@ def collect_model_paths(model_dir):
 
 MODEL_PATHS = collect_model_paths(MODEL_DIR)
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cpu')
 models_list = []
 for model_path in MODEL_PATHS:
     train_params = torch.load(model_path, map_location='cpu')
@@ -100,7 +99,7 @@ for tt_id, taxa in tqdm(enumerate(threshs.taxon_id), total=len(threshs.taxon_id)
     predictions = []
     for loc_emb, wt in zip(loc_emb_list, wt_list):
         with torch.no_grad():
-            wt_1 = wt[class_index, :]
+            wt_1 = wt[tt_id, :]
             preds = torch.sigmoid(torch.matmul(loc_emb, wt_1)).cpu().numpy()
             predictions.append(preds)
 
