@@ -49,5 +49,5 @@ _ = gdfk.pop("geometry")
 gdfk = gdfk.rename_axis('h3index')
 
 #save two files
-train_df_h3.to_csv("./pseudo_absence_generation_data/train_df_h3.csv")
-gdfk.to_csv("./pseudo_absence_generation_data/gdfk_res3.csv")
+train_df_h3.to_csv("./train_df_h3.csv")
+gdfk.to_csv("./gdfk_res3.csv")
