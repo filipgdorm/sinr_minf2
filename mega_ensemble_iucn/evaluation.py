@@ -20,7 +20,7 @@ RESULT_DIR = "masking_iucn"
 
 threshs = pd.read_csv(RESULT_DIR + f"/thresholds.csv")
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cpu')
 
 # Set up logging to file
 log_file_path = RESULT_DIR + f"/log.out"
