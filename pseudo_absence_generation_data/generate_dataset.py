@@ -1,6 +1,14 @@
 import pandas as pd
+import numpy as np
+import json
+import os
 import sys
+from sklearn.metrics import f1_score
+import h3pandas
+import torch
 import h3
+from sklearn.metrics import precision_recall_curve
+from tqdm import tqdm
 
 sys.path.append('../')
 import datasets
@@ -41,5 +49,5 @@ _ = gdfk.pop("geometry")
 gdfk = gdfk.rename_axis('h3index')
 
 #save two files
-train_df_h3 = pd.to_csv("./pseudo_absence_generation_data/test_train_df_h3.csv", index_col=0)
-gdfk = pd.to_csv("./pseudo_absence_generation_data/test_gdfk_res3.csv", index_col=0)
+train_df_h3 = pd.to_csv("./pseudo_absence_generation_data/train_df_h3.csv", index_col=0)
+gdfk = pd.to_csv("./pseudo_absence_generation_data/gdfk_res3.csv", index_col=0)
