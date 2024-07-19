@@ -37,12 +37,14 @@ def main(args):
     model = model.to(DEVICE)
     model.eval()
 
-    #load reference from iucn
-    with open(os.path.join('../data/eval/iucn/', 'iucn_res_5.json'), 'r') as f:
-                data = json.load(f)
-    species_ids = list(int(key) for key in (data['taxa_presence'].keys()))
+    data2 = np.load(os.path.join('../data/eval/snt/', 'snt_res_5.npy'), allow_pickle=True)
+    data2 = data2.item()
+    species_ids2 = data2['taxa']
+    loc_indices_per_species = data2['loc_indices_per_species']
+    labels_per_species = data2['labels_per_species']
 
-    check_containment(threshs.taxon_id.values, species_ids)
+
+    check_containment(threshs.taxon_id.values, species_ids2)
 
     if train_params['params']['input_enc'] in ['env', 'sin_cos_env']:
         raster = datasets.load_env()
@@ -50,7 +52,7 @@ def main(args):
         raster = None
     enc = utils.CoordEncoder(train_params['params']['input_enc'], raster=raster)
 
-    obs_locs = np.array(data['locs'], dtype=np.float32)
+    obs_locs = np.array(data2['obs_locs'], dtype=np.float32)
     obs_locs = torch.from_numpy(obs_locs).to('cpu')
     loc_feat = enc.encode(obs_locs)
 
@@ -71,13 +73,15 @@ def main(args):
     for tt_id, taxa in tqdm(enumerate(threshs.taxon_id), total=len(threshs.taxon_id)):
         wt_1 = wt[tt_id,:]
         preds = torch.sigmoid(torch.matmul(loc_emb, wt_1)).cpu().numpy()
-        species_locs = data['taxa_presence'].get(str(taxa))
 
-        y_test = np.zeros(preds.shape, int)
-        y_test[species_locs] = 1
+        # generate ground truth labels for current taxa
+        cur_loc_indices = np.array(loc_indices_per_species[tt_id])
+        cur_labels = np.array(labels_per_species[tt_id])
+
+        pred = preds[cur_loc_indices]
 
         thresh = threshs['thres'][tt_id]
-        per_species_f1[tt_id] = f1_at_thresh(y_test, preds, thresh, type='binary')
+        per_species_f1[tt_id] = f1_at_thresh(cur_labels, pred, thresh, type='binary')
 
     logging.info(f"Mean f1 score: {np.mean(per_species_f1)}")
     np.save(RESULT_DIR+args.exp_name+'/f1_scores.npy', per_species_f1)
