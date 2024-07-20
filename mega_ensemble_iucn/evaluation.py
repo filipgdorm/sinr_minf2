@@ -16,7 +16,10 @@ import utils
 import setup
 import logging
 
-RESULT_DIR = "masking_iucn"
+RESULT_DIR = "masking_an_full"
+# Directory containing model files
+#MODEL_DIR = '../five_models/'
+MODEL_DIR = '../five_models/an_full_1000/'
 
 threshs = pd.read_csv(RESULT_DIR + f"/thresholds.csv")
 
@@ -29,10 +32,6 @@ logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 logging.getLogger('').addHandler(console)
-
-
-# Directory containing model files
-MODEL_DIR = '../five_models/'
 
 # Function to collect all model paths in the nested directory
 def collect_model_paths(model_dir):
