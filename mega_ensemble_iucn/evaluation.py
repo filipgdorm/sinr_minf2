@@ -22,7 +22,6 @@ RESULT_DIR = "masking_an_full"
 MODEL_DIR = '../five_models/an_full_1000/'
 
 threshs = pd.read_csv(RESULT_DIR + f"/thresholds.csv")
-
 DEVICE = torch.device('cpu')
 # Set up logging to file
 log_file_path = RESULT_DIR + f"/log.out"
