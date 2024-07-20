@@ -19,7 +19,11 @@ import models
 import utils
 import setup
 
-RESULT_DIR = "rdm_sampling_snt"
+RESULT_DIR = "rdm_sampling_an_full"
+# Directory containing model files
+#MODEL_DIR = '../five_models/'
+MODEL_DIR = '../five_models/an_full_1000/'
+
 
 #load relevant data
 train_df_h3 = pd.read_csv("../pseudo_absence_generation_data/train_df_h3.csv", index_col=0)
@@ -31,9 +35,6 @@ presence_absence = pd.DataFrame({
 presence_absence = presence_absence.fillna(0)
 
 NUM_ABSENCES = 1000
-
-# Directory containing model files
-MODEL_DIR = '../five_models/'
 
 # Function to collect all model paths in the nested directory
 def collect_model_paths(model_dir):
