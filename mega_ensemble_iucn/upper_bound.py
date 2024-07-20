@@ -6,7 +6,6 @@ import sys
 from sklearn.metrics import f1_score
 import torch
 from sklearn.metrics import precision_recall_curve
-import argparse
 from tqdm import tqdm
 
 sys.path.append('../')
@@ -28,8 +27,6 @@ logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 logging.getLogger('').addHandler(console)
-
-logging.info(f"Model used for experiment: {args.model_path}")
 
 # Function to collect all model paths in the nested directory
 def collect_model_paths(model_dir):
