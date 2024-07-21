@@ -22,7 +22,6 @@ import setup
 RESULT_DIR = "masking_an_full"
 # Directory containing model files
 #MODEL_DIR = '../five_models/'
-# Directory containing model files
 MODEL_DIR = '../five_models/an_full_1000/'
 
 #load relevant data
@@ -46,9 +45,7 @@ def collect_model_paths(model_dir):
 
 MODEL_PATHS = collect_model_paths(MODEL_DIR)
 
-#DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 DEVICE = torch.device('cpu')
-
 models_list = []
 for model_path in MODEL_PATHS:
     train_params = torch.load(model_path, map_location='cpu')
@@ -68,10 +65,10 @@ obs_locs = np.array(gdfk[['lng', 'lat']].values, dtype=np.float32)
 obs_locs = torch.from_numpy(obs_locs).to('cpu')
 loc_feat = enc.encode(obs_locs)
 
-#load reference from iucn
-with open(os.path.join('../data/eval/iucn/', 'iucn_res_5.json'), 'r') as f:
-            data = json.load(f)
-species_ids = list((data['taxa_presence'].keys()))
+#load reference from snt
+data2 = np.load(os.path.join('../data/eval/snt/', 'snt_res_5.npy'), allow_pickle=True)
+data2 = data2.item()
+species_ids = data2['taxa']
 
 classes_of_interest = torch.zeros(len(species_ids), dtype=torch.int64)
 for tt_id, tt in enumerate(species_ids):
@@ -121,7 +118,7 @@ with open(RESULT_DIR+f"/thresholds.csv", mode='w', newline='') as file:
 
         presences = presence_absence[(presence_absence["forground"]>0)]["predictions"]
 
-        thres = np.percentile(presences, 5)
+        thres = np.min(presences)
         
         row = {
             "taxon_id": species_ids[class_index],

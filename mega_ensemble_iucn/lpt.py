@@ -121,7 +121,7 @@ with open(RESULT_DIR+f"/thresholds.csv", mode='w', newline='') as file:
 
         presences = presence_absence[(presence_absence["forground"]>0)]["predictions"]
 
-        thres = np.percentile(presences, 5)
+        thres = np.min(presences)
         
         row = {
             "taxon_id": species_ids[class_index],

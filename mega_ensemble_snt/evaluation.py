@@ -16,7 +16,7 @@ import utils
 import setup
 import logging
 
-RESULT_DIR = "rdm_sampling_an_full"
+RESULT_DIR = "lpt_an_full"
 # Directory containing model files
 #MODEL_DIR = '../five_models/'
 MODEL_DIR = '../five_models/an_full_1000/'
