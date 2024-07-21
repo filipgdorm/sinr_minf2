@@ -19,7 +19,7 @@ import models
 import utils
 import setup
 
-RESULT_DIR = "masking_an_full"
+RESULT_DIR = "lpt_an_full"
 # Directory containing model files
 #MODEL_DIR = '../five_models/'
 # Directory containing model files
