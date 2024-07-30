@@ -5,7 +5,7 @@ source ~/opt/anaconda3/bin/activate sinr_icml_og
 
 thresh_method="lpt"
 
-model_type=("an_full_1000" "an_slds_1000" "an_ssdl_1000")
+model_type=("an_full_1000_env" "an_slds_1000_env" "an_ssdl_1000_env")
 
 for ((i=0; i<${#model_type[@]}; i++)); do
     # Create dir
@@ -15,7 +15,7 @@ for ((i=0; i<${#model_type[@]}; i++)); do
     # Initialize counter
     counter=0
     # Directory containing the model files
-    MODEL_DIR="../five_models/${model_type[i]}"
+    MODEL_DIR="../five_models_env/${model_type[i]}"
     # Loop over subdirectories in the model directory
     for SUBDIR in "$MODEL_DIR"/*; do
         if [ -d "$SUBDIR" ]; then  # Check if it is a directory
