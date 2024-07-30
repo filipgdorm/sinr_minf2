@@ -35,7 +35,7 @@ presence_absence = pd.DataFrame({
 })
 presence_absence = presence_absence.fillna(0)
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cpu')
 train_params = torch.load(args.model_path, map_location='cpu')
 model = models.get_model(train_params['params'])
 model.load_state_dict(train_params['state_dict'], strict=True)

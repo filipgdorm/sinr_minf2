@@ -27,7 +27,7 @@ print(args.counter, args.result_dir, args.model_path)
 
 threshs = pd.read_csv(args.result_dir + f"/thresholds/thresholds_{args.counter}.csv")
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cpu')
 
 # Set up logging to file
 log_file_path = args.result_dir + f"/results/log_{args.counter}.out"
