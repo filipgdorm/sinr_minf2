@@ -3,7 +3,7 @@
 # Activate Conda Environment [assuming your Miniconda installation is in your root directory]
 source ~/opt/anaconda3/bin/activate sinr_icml_og
 
-thresh_method="masking"
+thresh_method="lpt"
 
 model_type=("an_full_1000" "an_slds_1000" "an_ssdl_1000")
 

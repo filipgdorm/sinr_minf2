@@ -19,7 +19,7 @@ import logging
 parser = argparse.ArgumentParser(description="Script to process thresholds and perform an experiment.")
 parser.add_argument("--model_path", type=str, default='model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt', help="Model path.")
 parser.add_argument("--result_dir", type=str, default='test', help="Experiment name")
-parser.add_argument("--counter", type=int, default='test', help="Experiment name")
+parser.add_argument("--counter", type=int, default=0, help=0)
 
 args = parser.parse_args()
 
@@ -121,6 +121,10 @@ def run_evaluation(model, enc):
 
     results['vision_only_top_1'] = float((data['inds'][:, -1] == data['labels']).mean())
     results['vision_geo_top_1'] = float(correct_pred.mean())
+
+    """lala = {'labels': data['labels'], 'correct_pred': (data['inds'][:, -1] == data['labels']), "correct_geo_pred": correct_pred}
+    df = pd.DataFrame(lala)
+    df.to_csv("../report_plotting/geo_prior_plot_lpt_delta.csv")"""
 
     return results
 results = run_evaluation(model, enc)
