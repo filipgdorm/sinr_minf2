@@ -98,7 +98,7 @@ logging.info(f"Mean f1 score: {f1score}")
 
 # Append the mean F1 score to a CSV file
 results_file = args.result_dir + '/mean_f1_scores.csv'
-results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1]})
+results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [f1score]})
 
 if os.path.isfile(results_file):
     results_data.to_csv(results_file, mode='a', header=False, index=False)
