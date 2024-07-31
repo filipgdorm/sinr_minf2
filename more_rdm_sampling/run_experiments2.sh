@@ -22,8 +22,8 @@ for size_factor in "${size_factors[@]}"; do
                 for MODEL_PATH in "$SUBDIR"/*; do
                     if [ -f "$MODEL_PATH" ]; then  # Check if it is a file
                         # Run the Python script with the current model path and counter
-                        python rdm_sampling2.py --size_factor "${size_factor}" --model_path "${MODEL_PATH}" --result_dir "${result_dir}" --counter "${counter}"           
-                        python evaluation2.py --size_factor "${size_factor}" --model_path "${MODEL_PATH}" --result_dir "${result_dir}" --counter "${counter}"
+                        python rdm_sampling2.py --num_absences "${size_factor}" --model_path "${MODEL_PATH}" --result_dir "${result_dir}" --counter "${counter}"           
+                        python evaluation2.py --num_absences "${size_factor}" --model_path "${MODEL_PATH}" --result_dir "${result_dir}" --counter "${counter}"
                         # Increment the counter
                         ((counter++))
                     fi
