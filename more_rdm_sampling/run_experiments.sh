@@ -12,7 +12,7 @@ for size_factor in "${size_factors[@]}"; do
     for ((i=0; i<${#model_type[@]}; i++)); do
         # Create dir
         mkdir -p "${model_type[i]}"
-        o_result_dir = "rdm_factor_${size_factor}/${model_type[i]}"
+        o_result_dir="rdm_factor_${size_factor}/${model_type[i]}"
         # Initialize counter
         counter=0
         # Directory containing the model files
