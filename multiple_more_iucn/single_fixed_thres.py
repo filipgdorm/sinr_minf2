@@ -89,7 +89,6 @@ mean_f1 = np.mean(per_species_f1)
 logging.info(f"Mean f1 score: {mean_f1}")
 np.save(args.result_dir+f'/results/f1_scores_{args.counter}.npy', per_species_f1)
 
-
 # Append the mean F1 score to a CSV file
 results_file = args.result_dir + '/mean_f1_scores.csv'
 results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1]})

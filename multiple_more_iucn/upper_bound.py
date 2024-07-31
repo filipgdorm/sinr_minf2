@@ -72,8 +72,9 @@ def f1_at_thresh(y_true, y_pred, thresh, type = 'binary'):
     y_thresh = y_pred > thresh
     return f1_score(y_true, y_thresh, average=type)
 
-output = list()
 per_species_f1 = np.zeros((len(species_ids)))
+per_species_thres = np.zeros((len(species_ids)))
+
 for tt_id, taxa in tqdm(enumerate(species_ids), total=len(species_ids)):
     wt_1 = wt[tt_id,:]
     preds = torch.sigmoid(torch.matmul(loc_emb, wt_1)).cpu().numpy()
@@ -82,21 +83,25 @@ for tt_id, taxa in tqdm(enumerate(species_ids), total=len(species_ids)):
     y_test = np.zeros(preds.shape, int)
     y_test[species_locs] = 1
 
-    thresh = preds.mean()
-    f1 =  f1_at_thresh(y_test, preds, thresh, type='binary')
-    per_species_f1[tt_id] = f1
+    precision, recall, thresholds = precision_recall_curve(y_test, preds)
+    p1 = (2 * precision * recall)
+    p2 = (precision + recall)
+    out = np.zeros( (len(p1)) )
+    fscore = np.divide(p1,p2, out=out, where=p2!=0)
 
-    row = {
-        "taxon_id": taxa,
-        "thres": thresh,
-        "fscore": f1
-    }
-    row_dict = dict(row)
-    output.append(row_dict)
-output_pd = pd.DataFrame(output)
+    index = np.argmax(fscore)
+    thres = thresholds[index]
+    max_fscore = fscore[index]
+
+    per_species_f1[tt_id] = max_fscore
+    per_species_thres[tt_id] = thres
+
 
 mean_f1 = np.mean(per_species_f1)
 logging.info(f"Mean f1 score: {mean_f1}")
+np.save(args.result_dir+f'/results/f1_scores_{args.counter}.npy', per_species_f1)
+np.save(args.result_dir+f'/results/opt_thres_{args.counter}.npy', per_species_thres)
+
 
 # Append the mean F1 score to a CSV file
 results_file = args.result_dir + '/mean_f1_scores.csv'

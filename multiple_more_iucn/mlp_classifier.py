@@ -26,19 +26,19 @@ from sklearn.preprocessing import StandardScaler
 
 parser = argparse.ArgumentParser(description="Script to process thresholds and perform an experiment.")
 parser.add_argument("--model_path", type=str, default='model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt', help="Model path.")
-parser.add_argument("--exp_name", type=str, default='test', help="Experiment name")
-#parser.add_argument("--thres_model", type=str, default='mlp', help="Experiment name")
+parser.add_argument("--result_dir", type=str, default='test', help="Experiment name")
+parser.add_argument("--counter", type=int, default='test', help="Experiment name")
+
 args = parser.parse_args()
 
 THRES_MODEL = "mlp"
-MODEL_PATH = '../pretrained_models/' + args.model_path
-RESULT_DIR = f'./threshold_classifier_results/{args.thres_model}/'
 
-if not os.path.exists(RESULT_DIR+args.exp_name):
-        os.mkdir(RESULT_DIR+args.exp_name)
+print(args.counter, args.result_dir, args.model_path)
+
+DEVICE = torch.device('cpu')
 
 # Set up logging to file
-log_file_path = RESULT_DIR+args.exp_name+"/log.out"
+log_file_path = args.result_dir + f"/results/log_{args.counter}.out"
 logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
                     format='%(levelname)s: %(message)s')
 console = logging.StreamHandler()
@@ -47,8 +47,7 @@ logging.getLogger('').addHandler(console)
 
 logging.info(f"Model used for experiment: {args.model_path}")
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-train_params = torch.load(MODEL_PATH, map_location='cpu')
+train_params = torch.load(args.model_path, map_location='cpu')
 model = models.get_model(train_params['params'])
 model.load_state_dict(train_params['state_dict'], strict=True)
 model = model.to(DEVICE)
@@ -109,42 +108,27 @@ X_train_thres, X_test_thres = X[mask], X[~mask]
 y_train_thres, y_test_thres = y[mask], y[~mask]
 
 logging.info(f"Threshold classifier model used {THRES_MODEL}")
-if THRES_MODEL=="rf":
-    # Create a Random Forest Classifier object
-    rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
 
-    # Train the Random Forest Classifier on the training data
-    rf_classifier.fit(X_train_thres, y_train_thres)
+# Scale the data
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train_thres)
+X_test_scaled = scaler.transform(X_test_thres)
 
-    # Predict categories for the testing data
-    predictions = rf_classifier.predict(X_test_thres)
+# Create an MLP Classifier object
+mlp_classifier = MLPClassifier(hidden_layer_sizes=(200,100), random_state=42)
 
-    # Compute accuracy
-    accuracy = accuracy_score(y_test_thres, predictions)
+# Train the MLP Classifier on the training data
+mlp_classifier.fit(X_train_scaled, y_train_thres)
 
-else:
-    # Scale the data
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train_thres)
-    X_test_scaled = scaler.transform(X_test_thres)
+# Predict categories for the testing data
+predictions = mlp_classifier.predict(X_test_scaled)
 
-
-    # Create an MLP Classifier object
-    mlp_classifier = MLPClassifier(hidden_layer_sizes=(200,100), random_state=42)
-
-    # Train the MLP Classifier on the training data
-    mlp_classifier.fit(X_train_scaled, y_train_thres)
-
-    # Predict categories for the testing data
-    predictions = mlp_classifier.predict(X_test_scaled)
-
-    # Compute accuracy
-    accuracy = accuracy_score(y_test_thres, predictions)
+# Compute accuracy
+accuracy = accuracy_score(y_test_thres, predictions)
 
 logging.info(f"Accuracy of threshold model: {accuracy}")
 
 class_to_thres = np.arange(0.025, 1, 0.05)
-class_to_thres
 
 def f1_at_thresh(y_true, y_pred, thresh, type = 'binary'):
     y_thresh = y_pred > thresh
@@ -175,16 +159,18 @@ for tt_id, taxa in tqdm(enumerate(taxa_ids_subset),total=len(taxa_ids_subset)):
     output.append(row_dict)
 
 output_pd = pd.DataFrame(output)
-output_pd.to_csv(RESULT_DIR+args.exp_name+f"/scores.csv")
+output_pd.to_csv(args.result_dir+f"/scores.csv")
 
+mean_f1 = output_pd.fscore.mean()
 logging.info(f"Mean threshold: {output_pd.thres.mean()}")
-logging.info(f"Mean F1 score: {output_pd.fscore.mean()}")
+logging.info(f"Mean F1 score: {mean_f1}")
 logging.info("")
 
-"""masking95 = np.load(f'./masking_results/{args.exp_name}/f1_scores.npy')
-logging.info(f"Masking F1 score same species subset: {masking95[random_indices].mean()}")
+# Append the mean F1 score to a CSV file
+results_file = args.result_dir + '/mean_f1_scores.csv'
+results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1]})
 
-inat = np.load(f'./tgt_background_results/{args.exp_name}/f1_scores.npy')
-logging.info(f"Tgt background F1 score same species subset: {inat[random_indices].mean()}")
-
-logging.info(f"Upper bound F1 score same species subset: {upper_b_pd.fscore.values[mask].mean()}")"""
+if os.path.isfile(results_file):
+    results_data.to_csv(results_file, mode='a', header=False, index=False)
+else:
+    results_data.to_csv(results_file, mode='w', header=True, index=False)

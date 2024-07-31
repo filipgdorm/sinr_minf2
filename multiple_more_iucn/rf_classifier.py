@@ -26,19 +26,19 @@ from sklearn.preprocessing import StandardScaler
 
 parser = argparse.ArgumentParser(description="Script to process thresholds and perform an experiment.")
 parser.add_argument("--model_path", type=str, default='model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt', help="Model path.")
-parser.add_argument("--exp_name", type=str, default='test', help="Experiment name")
-parser.add_argument("--thres_model", type=str, default='mlp', help="Experiment name")
+parser.add_argument("--result_dir", type=str, default='test', help="Experiment name")
+parser.add_argument("--counter", type=int, default='test', help="Experiment name")
+
 args = parser.parse_args()
 
-THRES_MODEL = "mlp"
-MODEL_PATH = '../pretrained_models/' + args.model_path
-RESULT_DIR = f'./threshold_classifier_results/{args.thres_model}/'
+THRES_MODEL = "rf"
 
-if not os.path.exists(RESULT_DIR+args.exp_name):
-        os.mkdir(RESULT_DIR+args.exp_name)
+print(args.counter, args.result_dir, args.model_path)
+
+DEVICE = torch.device('cpu')
 
 # Set up logging to file
-log_file_path = RESULT_DIR+args.exp_name+"/log.out"
+log_file_path = args.result_dir + f"/results/log_{args.counter}.out"
 logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
                     format='%(levelname)s: %(message)s')
 console = logging.StreamHandler()
@@ -47,8 +47,7 @@ logging.getLogger('').addHandler(console)
 
 logging.info(f"Model used for experiment: {args.model_path}")
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-train_params = torch.load(MODEL_PATH, map_location='cpu')
+train_params = torch.load(args.model_path, map_location='cpu')
 model = models.get_model(train_params['params'])
 model.load_state_dict(train_params['state_dict'], strict=True)
 model = model.to(DEVICE)
@@ -109,37 +108,18 @@ X_train_thres, X_test_thres = X[mask], X[~mask]
 y_train_thres, y_test_thres = y[mask], y[~mask]
 
 logging.info(f"Threshold classifier model used {THRES_MODEL}")
-if THRES_MODEL=="rf":
-    # Create a Random Forest Classifier object
-    rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
 
-    # Train the Random Forest Classifier on the training data
-    rf_classifier.fit(X_train_thres, y_train_thres)
+# Create a Random Forest Classifier object
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
 
-    # Predict categories for the testing data
-    predictions = rf_classifier.predict(X_test_thres)
+# Train the Random Forest Classifier on the training data
+rf_classifier.fit(X_train_thres, y_train_thres)
 
-    # Compute accuracy
-    accuracy = accuracy_score(y_test_thres, predictions)
+# Predict categories for the testing data
+predictions = rf_classifier.predict(X_test_thres)
 
-else:
-    # Scale the data
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train_thres)
-    X_test_scaled = scaler.transform(X_test_thres)
-
-
-    # Create an MLP Classifier object
-    mlp_classifier = MLPClassifier(hidden_layer_sizes=(200,100), random_state=42)
-
-    # Train the MLP Classifier on the training data
-    mlp_classifier.fit(X_train_scaled, y_train_thres)
-
-    # Predict categories for the testing data
-    predictions = mlp_classifier.predict(X_test_scaled)
-
-    # Compute accuracy
-    accuracy = accuracy_score(y_test_thres, predictions)
+# Compute accuracy
+accuracy = accuracy_score(y_test_thres, predictions)
 
 logging.info(f"Accuracy of threshold model: {accuracy}")
 
