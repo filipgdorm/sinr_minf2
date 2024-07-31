@@ -17,29 +17,29 @@ import setup
 import logging
 
 parser = argparse.ArgumentParser(description="Script to process thresholds and perform an experiment.")
+parser.add_argument("--model_path", type=str, default='model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt', help="Model path.")
+parser.add_argument("--result_dir", type=str, default='test', help="Experiment name")
+parser.add_argument("--counter", type=int, default='test', help="Experiment name")
 parser.add_argument("--size_factor", type=float, default=1.0, help="Experiment name")
 
 args = parser.parse_args()
 
-MODEL_PATH = "../pretrained_models/model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt"
-RESULT_DIR = f"rdm_factor_{args.size_factor}"
-
-threshs = pd.read_csv(RESULT_DIR + f"/thresholds.csv")
+threshs = pd.read_csv(args.result_dir + f"/thresholds_{args.counter}.csv")
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Set up logging to file
-log_file_path = RESULT_DIR + f"/log.out"
+log_file_path = args.result_dir + f"/log_{args.counter}.out"
 logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
                     format='%(levelname)s: %(message)s')
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 logging.getLogger('').addHandler(console)
 
-logging.info(f"Model used for experiment: {MODEL_PATH}")
+logging.info(f"Model used for experiment: {args.model_path}")
 
 # load model
-train_params = torch.load(MODEL_PATH, map_location='cpu')
+train_params = torch.load(args.model_path, map_location='cpu')
 model = models.get_model(train_params['params'])
 model.load_state_dict(train_params['state_dict'], strict=True)
 model = model.to(DEVICE)
@@ -87,4 +87,4 @@ for tt_id, taxa in tqdm(enumerate(threshs.taxon_id), total=len(threshs.taxon_id)
 
 mean_f1 = np.mean(per_species_f1)
 logging.info(f"Mean f1 score: {mean_f1}")
-np.save(RESULT_DIR+f'/f1_scores.npy', per_species_f1)
+np.save(args.result_dir+f'/f1_scores_{args.counter}.npy', per_species_f1)
