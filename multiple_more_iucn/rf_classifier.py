@@ -79,7 +79,9 @@ with torch.no_grad():
     loc_emb = model(loc_feat, return_feats=True)
     wt = model.class_emb.weight[classes_of_interest, :]
 
-y_path = f'./upper_bound/results/opt_thres_{args.counter}.npy'
+model_type = args.result_dir.split("/")[-1]
+print(model_type)
+y_path = f'./upper_bound/{model_type}/results/opt_thres_{args.counter}.npy'
 
 X = wt.numpy()
 y = np.load(y_path)
