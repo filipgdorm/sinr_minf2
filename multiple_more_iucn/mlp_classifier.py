@@ -79,7 +79,8 @@ with torch.no_grad():
     loc_emb = model(loc_feat, return_feats=True)
     wt = model.class_emb.weight[classes_of_interest, :]
 
-y_path = f'./upper_bound/results/opt_thres_{args.counter}.npy'
+model_type = args.result_dir.split("/")[-1]
+y_path = f'./upper_bound/{model_type}/results/opt_thres_{args.counter}.npy'
 
 X = wt.numpy()
 y = np.load(y_path)
@@ -167,7 +168,7 @@ logging.info("")
 
 # Append the mean F1 score to a CSV file
 results_file = args.result_dir + '/mean_f1_scores.csv'
-results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1]})
+results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1], 'model_acc': [accuracy]})
 
 if os.path.isfile(results_file):
     results_data.to_csv(results_file, mode='a', header=False, index=False)
