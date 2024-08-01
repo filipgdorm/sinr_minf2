@@ -79,11 +79,10 @@ with torch.no_grad():
     loc_emb = model(loc_feat, return_feats=True)
     wt = model.class_emb.weight[classes_of_interest, :]
 
-y_path = f'../new_results/{args.exp_name}/scores.csv'
+y_path = f'./upper_bound/{args.result_dir}/results/opt_thres_{args.counter}.npy'
 
 X = wt.numpy()
-upper_b_pd = pd.read_csv(y_path, index_col=0)
-y = upper_b_pd.thres.values
+y = np.load(y_path)
 
 # Define the number of categories
 num_categories = 20

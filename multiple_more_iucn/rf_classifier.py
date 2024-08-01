@@ -79,11 +79,10 @@ with torch.no_grad():
     loc_emb = model(loc_feat, return_feats=True)
     wt = model.class_emb.weight[classes_of_interest, :]
 
-y_path = f'../new_results/{args.exp_name}/scores.csv'
+y_path = f'./upper_bound/{args.result_dir}/results/opt_thres_{args.counter}.npy'
 
 X = wt.numpy()
-upper_b_pd = pd.read_csv(y_path, index_col=0)
-y = upper_b_pd.thres.values
+y = np.load(y_path)
 
 # Define the number of categories
 num_categories = 20
@@ -124,7 +123,6 @@ accuracy = accuracy_score(y_test_thres, predictions)
 logging.info(f"Accuracy of threshold model: {accuracy}")
 
 class_to_thres = np.arange(0.025, 1, 0.05)
-class_to_thres
 
 def f1_at_thresh(y_true, y_pred, thresh, type = 'binary'):
     y_thresh = y_pred > thresh
@@ -155,16 +153,18 @@ for tt_id, taxa in tqdm(enumerate(taxa_ids_subset),total=len(taxa_ids_subset)):
     output.append(row_dict)
 
 output_pd = pd.DataFrame(output)
-output_pd.to_csv(RESULT_DIR+args.exp_name+f"/scores.csv")
+output_pd.to_csv(args.result_dir+f"/scores.csv")
 
+mean_f1 = output_pd.fscore.mean()
 logging.info(f"Mean threshold: {output_pd.thres.mean()}")
-logging.info(f"Mean F1 score: {output_pd.fscore.mean()}")
+logging.info(f"Mean F1 score: {mean_f1}")
 logging.info("")
 
-"""masking95 = np.load(f'./masking_results/{args.exp_name}/f1_scores.npy')
-logging.info(f"Masking F1 score same species subset: {masking95[random_indices].mean()}")
+# Append the mean F1 score to a CSV file
+results_file = args.result_dir + '/mean_f1_scores.csv'
+results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1]})
 
-inat = np.load(f'./tgt_background_results/{args.exp_name}/f1_scores.npy')
-logging.info(f"Tgt background F1 score same species subset: {inat[random_indices].mean()}")
-
-logging.info(f"Upper bound F1 score same species subset: {upper_b_pd.fscore.values[mask].mean()}")"""
+if os.path.isfile(results_file):
+    results_data.to_csv(results_file, mode='a', header=False, index=False)
+else:
+    results_data.to_csv(results_file, mode='w', header=True, index=False)
