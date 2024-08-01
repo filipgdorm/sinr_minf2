@@ -88,3 +88,12 @@ for tt_id, taxa in tqdm(enumerate(threshs.taxon_id), total=len(threshs.taxon_id)
 mean_f1 = np.mean(per_species_f1)
 logging.info(f"Mean f1 score: {mean_f1}")
 np.save(args.result_dir+f'/f1_scores_{args.counter}.npy', per_species_f1)
+
+# Append the mean F1 score to a CSV file
+results_file = args.result_dir + '/mean_f1_scores.csv'
+results_data = pd.DataFrame({'counter': [args.counter], 'mean_f1': [mean_f1]})
+
+if os.path.isfile(results_file):
+    results_data.to_csv(results_file, mode='a', header=False, index=False)
+else:
+    results_data.to_csv(results_file, mode='w', header=True, index=False)
