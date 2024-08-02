@@ -19,11 +19,11 @@ import models
 import utils
 import setup
 
-RESULT_DIR = "masking_an_full"
+RESULT_DIR = "masking_an_full_env"
 # Directory containing model files
 #MODEL_DIR = '../five_models/'
 # Directory containing model files
-MODEL_DIR = '../five_models/an_full_1000/'
+MODEL_DIR = '../five_models_env/an_full_1000_env/'
 
 #load relevant data
 train_df_h3 = pd.read_csv("../pseudo_absence_generation_data/train_df_h3.csv", index_col=0)

@@ -15,9 +15,9 @@ import utils
 import setup
 import logging
 
-RESULT_DIR = "upper_bound"
+RESULT_DIR = "upper_bound_env"
 # Directory containing model files
-MODEL_DIR = '../five_models/'
+MODEL_DIR = '../five_models_env/an_full_env/'
 DEVICE = torch.device('cpu')
 
 # Set up logging to file

@@ -16,9 +16,9 @@ import utils
 import setup
 import logging
 
-RESULT_DIR = "upper_bound"
+RESULT_DIR = "upper_bound_env"
 # Directory containing model files
-MODEL_DIR = '../five_models/'
+MODEL_DIR = '../five_models_env/an_full_env/'
 
 # Set up logging to file
 log_file_path = RESULT_DIR + f"/log.out"
