@@ -20,6 +20,8 @@ parser = argparse.ArgumentParser(description="Script to process thresholds and p
 parser.add_argument("--model_path", type=str, default='model_an_full_input_enc_sin_cos_hard_cap_num_per_class_1000.pt', help="Model path.")
 parser.add_argument("--result_dir", type=str, default='test', help="Experiment name")
 parser.add_argument("--counter", type=int, default='test', help="Experiment name")
+parser.add_argument("--noise_level", type=float, default=0.0, help="Noise level for masking.")
+
 
 args = parser.parse_args()
 
