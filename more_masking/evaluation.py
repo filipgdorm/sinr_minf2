@@ -92,7 +92,7 @@ np.save(args.result_dir+f'/results/f1_scores_{args.counter}.npy', per_species_f1
 
 # Append the mean F1 score to a CSV file
 results_file = '/results_table.csv'
-results_data = pd.DataFrame({'masking_level': [args.noise_level], 'counter': [args.counter], 'mean_f1': [mean_f1]})
+results_data = pd.DataFrame({'model_name': [args.result_dir.split('/')[0]], 'masking_level': [args.noise_level], 'counter': [args.counter], 'mean_f1': [mean_f1]})
 
 if os.path.isfile(results_file):
     results_data.to_csv(results_file, mode='a', header=False, index=False)
