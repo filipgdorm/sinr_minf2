@@ -32,7 +32,7 @@ threshs = pd.read_csv(args.result_dir + f"/thresholds_{args.counter}.csv")
 DEVICE = torch.device('cpu')
 
 # Set up logging to file
-log_file_path = args.result_dir + f"/results/log_{args.counter}.out"
+log_file_path = args.result_dir + f"/log_{args.counter}.out"
 logging.basicConfig(filename=log_file_path, filemode='a', level=logging.INFO,
                     format='%(levelname)s: %(message)s')
 console = logging.StreamHandler()
