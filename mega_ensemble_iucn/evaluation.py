@@ -16,10 +16,10 @@ import utils
 import setup
 import logging
 
-RESULT_DIR = "lpt_an_full"
+RESULT_DIR = "lpt_an_full_env"
 # Directory containing model files
 #MODEL_DIR = '../five_models/'
-MODEL_DIR = '../five_models/an_full_1000/'
+MODEL_DIR = '../five_models_env/an_full_1000_env/'
 
 threshs = pd.read_csv(RESULT_DIR + f"/thresholds.csv")
 DEVICE = torch.device('cpu')
